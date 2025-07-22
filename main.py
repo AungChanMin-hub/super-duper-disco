@@ -1,13 +1,21 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext, CallbackQueryHandler
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    MessageHandler,
+    filters,
+    CallbackContext,
+    CallbackQueryHandler
+)
+import os
 
 # ✅ Admin Telegram ID
-ADMIN_ID = 7155245576
+ADMIN_ID = 7155245576  # မင်း admin ID ထား
 
-# ✅ Bot Start Command
+# ✅ Start command
 async def start(update: Update, context: CallbackContext):
     await update.message.reply_text(
-        "💰 Member ဝင်ကြေး – 5,000 MMK\n\n"
+        "💰 Member ဝင်ကြေး – 2,000 MMK\n\n"
         "📲 ပေးပို့ရန်နည်းလမ်းများ:\n\n"
         "✅ WavePay / KBZPay\n"
         "📌 09891947437\n"
@@ -18,7 +26,7 @@ async def start(update: Update, context: CallbackContext):
         "⚠️ ပေးပြီးပါက Screenshot ပေးပို့ပါ။ Admin စစ်ဆေးပြီး access ပေးပါမယ်။"
     )
 
-# ✅ Screenshot တင်တဲ့အခါ Admin ကိုပြ
+# ✅ Screenshot ပေးတဲ့အခါ Admin ကို ပြ
 async def handle_photo(update: Update, context: CallbackContext):
     user = update.message.from_user
     photo = update.message.photo[-1].file_id
@@ -39,12 +47,13 @@ async def handle_photo(update: Update, context: CallbackContext):
 
     await update.message.reply_text("📤 Screenshot ပေးပြီးပါပြီ – Admin စစ်ဆေးနေပါတယ်။")
 
-# ✅ Admin Approve Button လုပ်ဆောင်ချက်
+# ✅ Admin Button ကို နှိပ်တဲ့အခါ
 async def approve(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
 
     user_id = int(query.data.split('_')[1])
+
     await context.bot.send_message(
         chat_id=user_id,
         text="✅ မင်္ဂလာပါ – သင်သည် Member ဖြစ်ပြီး အသုံးပြုနိုင်ပါပြီ။"
@@ -52,13 +61,22 @@ async def approve(update: Update, context: CallbackContext):
 
     await query.edit_message_caption(caption="✅ Approved by Admin")
 
-# ✅ Bot Run
+# ✅ Main Bot Run Function
 def main():
-    app = Application.builder().token("8143240744:AAHOfq7OecMTw2WvWJhvqDp-VOnO_cuHHQk").build()
+    token = os.getenv("BOT_TOKEN")
+
+    if not token:
+        print("❌ BOT_TOKEN not found. Please set it in Railway Variables.")
+        return
+
+    app = Application.builder().token(token).build()
+
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.PHOTO, handle_photo))
     app.add_handler(CallbackQueryHandler(approve, pattern="^approve_"))
+
+    print("✅ Bot is running...")
     app.run_polling()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
